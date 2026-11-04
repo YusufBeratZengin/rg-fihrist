@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Commit oncesi kapi: sir taramasi (zorunlu) + hizli lint/tip/test (varsa).
+#
+# Kurulum (depo basina bir kez):  git config core.hooksPath .githooks
+# Atlatmadan calistirmak icin kullanin; kirmizi olursa commit olmaz.
+
+set -uo pipefail
+
+KOK="$(git rev-parse --show-toplevel)" || exit 1
+cd "$KOK" || exit 1
+
+PYTHON=""
+for aday in ".venv/Scripts/python.exe" ".venv/bin/python" "python3" "python"; do
+    if [ -x "$aday" ] || command -v "$aday" >/dev/null 2>&1; then
+        PYTHON="$aday"
+        break
+    fi
+done
+if [ -z "$PYTHON" ]; then
+    echo "pre-commit: python bulunamadi, commit engellendi" >&2
+    exit 1
+fi
+
+# Yalnizca eklenen/degisen dosyalar
+dosyalar=()
+while IFS= read -r dosya; do
+    [ -n "$dosya" ] && [ -f "$dosya" ] && dosyalar+=("$dosya")
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ ${#dosyalar[@]} -eq 0 ]; then
+    exit 0
+fi
+
+echo "pre-commit: ${#dosyalar[@]} dosya denetleniyor"
+
+# 1) Sir taramasi - her zaman, standart kutuphane ile.
+if ! "$PYTHON" scripts/sir_tara.py "${dosyalar[@]}"; then
+    echo "pre-commit: sir taramasi kirmizi, commit engellendi" >&2
+    exit 1
+fi
+
+# 2) Gelistirme araclari kuruluysa hizli kontroller.
+py_dosyalar=()
+for dosya in "${dosyalar[@]}"; do
+    case "$dosya" in
+        *.py) py_dosyalar+=("$dosya") ;;
+    esac
+done
+
+if [ ${#py_dosyalar[@]} -gt 0 ] && "$PYTHON" -c "import ruff" >/dev/null 2>&1; then
+    if ! "$PYTHON" -m ruff check "${py_dosyalar[@]}"; then
+        echo "pre-commit: ruff kirmizi, commit engellendi" >&2
+        exit 1
+    fi
+elif [ ${#py_dosyalar[@]} -gt 0 ]; then
+    echo "pre-commit: ruff kurulu degil, lint adimi atlandi (scripts/check.sh calistirin)" >&2
+fi
+
+if "$PYTHON" -c "import pytest" >/dev/null 2>&1; then
+    if ! "$PYTHON" -m pytest -q >/dev/null; then
+        echo "pre-commit: testler kirmizi, commit engellendi (ayrinti: pytest -q)" >&2
+        exit 1
+    fi
+else
+    echo "pre-commit: pytest kurulu degil, test adimi atlandi (scripts/check.sh calistirin)" >&2
+fi
+
+exit 0
