@@ -25,13 +25,15 @@ titles and links. Always verify against
 ## Install
 
 ```console
-$ pipx install rg-fihrist        # recommended: isolated CLI
-# or, from a checkout:
+# from a checkout (the PyPI release is not published yet):
 $ python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
-$ pip install -e ".[dev]"
+$ pip install -e .
+# or install the console script in isolation:
+$ pipx install .
 ```
 
-Python 3.10+ is required; there are no runtime dependencies.
+Python 3.10 or newer is required; there are no runtime dependencies. Once the
+first release is on PyPI, `pipx install rg-fihrist` will be the shortest path.
 
 ## 30-second example
 

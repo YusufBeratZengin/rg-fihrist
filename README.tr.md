@@ -24,13 +24,15 @@ başlık ve bağlantıları kopyalar. Bir belgeye dayanmadan önce
 ## Kurulum
 
 ```console
-$ pipx install rg-fihrist        # önerilen: yalıtılmış kurulum
-# veya kaynaktan:
+# kaynaktan (PyPI sürümü henüz yayımlanmadı):
 $ python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
-$ pip install -e ".[dev]"
+$ pip install -e .
+# veya komutu yalıtılmış kurun:
+$ pipx install .
 ```
 
-Python 3.10 veya üzeri gerekir; çalışma zamanı bağımlılığı yoktur.
+Python 3.10 veya üzeri gerekir; çalışma zamanı bağımlılığı yoktur. İlk sürüm
+PyPI'da yayımlandığında en kısa yol `pipx install rg-fihrist` olacak.
 
 ## 30 saniyelik örnek
 
