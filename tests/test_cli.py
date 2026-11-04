@@ -190,7 +190,7 @@ def test_kullanim_hatalari_cikis_kodu_4(
 def test_min_aralik_alt_sinir_mesaji(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["bugun", "--min-aralik", "0"], indirici=SahteIndirici()) == CIKIS_KULLANIM
     hata = capsys.readouterr().err
-    assert "en az 2 saniye" in hata
+    assert "2 saniye veya uzeri sonlu" in hata
 
 
 def test_gecerli_min_aralik_indiriciye_gecer(

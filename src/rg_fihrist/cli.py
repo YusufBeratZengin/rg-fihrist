@@ -74,7 +74,8 @@ def _aralik_arg(deger: str) -> float:
     # NaN veya sonsuz bir deger sleep'i cokertecegi icin reddedilir.
     if not math.isfinite(sayi) or sayi < MIN_ARALIK_SN:
         raise argparse.ArgumentTypeError(
-            f"en az {MIN_ARALIK_SN:g} saniye olmali (kaynak sunucuya kibar davranmak icin)"
+            f"{MIN_ARALIK_SN:g} saniye veya uzeri sonlu bir deger olmali "
+            "(kaynak sunucuya kibar davranmak icin)"
         )
     return sayi
 
