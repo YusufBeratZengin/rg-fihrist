@@ -21,10 +21,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import sys
 from datetime import date
 from typing import NoReturn
+from urllib.parse import urlparse
 
 from rg_fihrist._surum import SURUM
 from rg_fihrist.ara import eslesme_mi, girdi_metni
@@ -69,7 +71,8 @@ def _aralik_arg(deger: str) -> float:
         sayi = float(deger)
     except ValueError:
         raise argparse.ArgumentTypeError(f"gecersiz sayi: {deger!r}") from None
-    if sayi != sayi or sayi < MIN_ARALIK_SN:  # NaN veya alt sinirin altinda
+    # NaN veya sonsuz bir deger sleep'i cokertecegi icin reddedilir.
+    if not math.isfinite(sayi) or sayi < MIN_ARALIK_SN:
         raise argparse.ArgumentTypeError(
             f"en az {MIN_ARALIK_SN:g} saniye olmali (kaynak sunucuya kibar davranmak icin)"
         )
@@ -81,9 +84,17 @@ def _timeout_arg(deger: str) -> float:
         sayi = float(deger)
     except ValueError:
         raise argparse.ArgumentTypeError(f"gecersiz sayi: {deger!r}") from None
-    if sayi != sayi or sayi <= 0:
-        raise argparse.ArgumentTypeError("zaman asimi sifirdan buyuk olmali")
+    if not math.isfinite(sayi) or sayi <= 0:
+        raise argparse.ArgumentTypeError("zaman asimi sonlu ve sifirdan buyuk olmali")
     return sayi
+
+
+def _url_arg(deger: str) -> str:
+    """Yalniz http(s) URL kabul et; ``file://`` gibi semalar yerel dosya acardi."""
+    parca = urlparse(deger)
+    if parca.scheme.lower() not in ("http", "https") or not parca.netloc:
+        raise argparse.ArgumentTypeError(f"http(s) URL bekleniyor: {deger!r}")
+    return deger
 
 
 def _mukerrer_arg(deger: str) -> int:
@@ -140,7 +151,12 @@ def _parser_olustur() -> argparse.ArgumentParser:
             action="store_true",
             help="Modern /fihrist gorunumu yerine ham arsiv sayfasini (/eskiler/...) cek",
         )
-        kaynak.add_argument("--url", metavar="URL", help="URL'yi dogrudan ver (arsiv/test icin)")
+        kaynak.add_argument(
+            "--url",
+            metavar="URL",
+            type=_url_arg,
+            help="http(s) URL'yi dogrudan ver (arsiv/ayna/test icin)",
+        )
         sp.add_argument(
             "--min-aralik",
             type=_aralik_arg,

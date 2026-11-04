@@ -67,6 +67,8 @@ def test_varsayilan_aralik_en_az_iki_saniye() -> None:
     assert aralik_dogrula(0) == 2.0
     assert aralik_dogrula(-5) == 2.0
     assert aralik_dogrula(float("nan")) == 2.0
+    assert aralik_dogrula(float("inf")) == 2.0
+    assert aralik_dogrula(float("-inf")) == 2.0
     assert aralik_dogrula("gecersiz") == 2.0  # type: ignore[arg-type]
     assert aralik_dogrula(7.5) == 7.5
 
@@ -77,6 +79,25 @@ def test_sifir_aralik_verilse_bile_kirpilir() -> None:
     assert ind.min_aralik == 2.0
     ind = Indirici(min_aralik=-3, robots=False)
     assert ind.min_aralik == 2.0
+
+
+def test_sonsuz_aralik_sleep_ile_cokertmez() -> None:
+    """Regresyon: ``--min-aralik inf`` eskiden ``OverflowError`` ile cokuyordu."""
+    getir = SahteGetir({SAYFA_URL: (GOVDE, {}, 200)})
+    saat = SahteSaat()
+    ind = _indirici(getir, saat, robots=False, min_aralik=float("inf"))
+    assert ind.min_aralik == MIN_ARALIK_SN
+    ind.indir(SAYFA_URL)
+    ind.indir(SAYFA_URL)
+    assert saat.uykular == [2.0]
+
+
+@pytest.mark.parametrize("url", ["http://[::1/x", "http://ornek.test:abc/x"])
+def test_gecersiz_url_ag_hatasina_cevrilir(url: str) -> None:
+    """Bozuk URL'ler ``ValueError``/``InvalidURL`` olarak sizmamali."""
+    with pytest.raises(AgHatasi) as hata:
+        Indirici(robots=False).indir(url)
+    assert "gecersiz URL" in str(hata.value)
 
 
 def test_iki_istek_arasi_tam_olarak_beklenir() -> None:

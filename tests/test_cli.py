@@ -6,6 +6,9 @@ Ag kullanilmaz; ``main`` fonksiyonuna sahte bir ``Indirici`` enjekte edilir.
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -167,6 +170,12 @@ def test_metin_ciktisi_bolumleri_gruplar(capsys: pytest.CaptureFixture[str]) -> 
         ["bugun", "--mukerrer", "abc"],
         ["bugun", "--timeout", "abc"],
         ["bugun", "--min-aralik", "abc"],
+        ["bugun", "--min-aralik", "inf"],
+        ["bugun", "--timeout", "inf"],
+        ["bugun", "--timeout", "nan"],
+        ["bugun", "--url", "file:///etc/hosts"],
+        ["bugun", "--url", "ftp://ornek.test/fihrist"],
+        ["bugun", "--url", "https://"],
         ["bugun", "--url", MODERN_URL, "--ham"],
         ["bugun", "--bolum", "olmayan"],
     ],
@@ -182,6 +191,49 @@ def test_min_aralik_alt_sinir_mesaji(capsys: pytest.CaptureFixture[str]) -> None
     assert main(["bugun", "--min-aralik", "0"], indirici=SahteIndirici()) == CIKIS_KULLANIM
     hata = capsys.readouterr().err
     assert "en az 2 saniye" in hata
+
+
+def test_gecerli_min_aralik_indiriciye_gecer(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Olumlu yol: 2 sn uzerindeki deger kirpilmadan Indirici'ye aktarilir."""
+    yakalanan: dict[str, object] = {}
+
+    class YakalayanIndirici(SahteIndirici):
+        def __init__(self, **kw: object) -> None:
+            super().__init__()
+            yakalanan.update(kw)
+
+    monkeypatch.setattr("rg_fihrist.cli.Indirici", YakalayanIndirici)
+    assert main(["bugun", "--json", "--min-aralik", "2.5"]) == CIKIS_TAMAM
+    assert yakalanan["min_aralik"] == 2.5
+    assert yakalanan["robots"] is True
+    capsys.readouterr()
+
+
+def test_gercek_surec_cikis_kodu_4() -> None:
+    """Belgelenen kod yalnizca main() donusu degil, gercek surec kodu da olmali."""
+    kok = Path(__file__).resolve().parents[1]
+    ortam = dict(os.environ, PYTHONPATH=str(kok / "src"))
+    hatali = subprocess.run(
+        [sys.executable, "-m", "rg_fihrist", "bugun", "--min-aralik", "0"],
+        capture_output=True,
+        text=True,
+        cwd=kok,
+        env=ortam,
+        check=False,
+    )
+    assert hatali.returncode == CIKIS_KULLANIM
+    assert "hata" in hatali.stderr
+    basarili = subprocess.run(
+        [sys.executable, "-m", "rg_fihrist", "--surum"],
+        capture_output=True,
+        text=True,
+        cwd=kok,
+        env=ortam,
+        check=False,
+    )
+    assert basarili.returncode == CIKIS_TAMAM
 
 
 def test_yardim_ve_surum_sifir_kodla_cikar(capsys: pytest.CaptureFixture[str]) -> None:

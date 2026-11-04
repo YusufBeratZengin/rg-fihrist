@@ -18,6 +18,8 @@ Politika:
 
 from __future__ import annotations
 
+import http.client
+import math
 import re
 import time
 import urllib.error
@@ -92,12 +94,16 @@ def arsiv_url(tarih: date, mukerrer: int = 0, taban: str = TABAN_URL) -> str:
 
 
 def aralik_dogrula(deger: float) -> float:
-    """Bekleme araligini alt sinira gore kirp (NaN/gecersiz -> varsayilan)."""
+    """Bekleme araligini alt sinira gore kirp (NaN/sonsuz/gecersiz -> varsayilan).
+
+    Sonsuz bir aralik ``time.sleep`` icinde ``OverflowError`` ile cokerdi; bu
+    yuzden sonlu olmayan degerler kibarlik alt sinirina cekilir.
+    """
     try:
         sayi = float(deger)
     except (TypeError, ValueError):
         return MIN_ARALIK_SN
-    if sayi != sayi:  # NaN
+    if not math.isfinite(sayi):
         return MIN_ARALIK_SN
     return max(MIN_ARALIK_SN, sayi)
 
@@ -133,8 +139,8 @@ def _varsayilan_getir(
     url: str, headers: dict[str, str], timeout: float
 ) -> tuple[bytes, dict[str, str], int]:
     """urllib ile GET istegi; (govde, headerlar, durum kodu) dondurur."""
-    istek = urllib.request.Request(url, headers=headers)
     try:
+        istek = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(istek, timeout=timeout) as yanit:
             son = yanit.geturl()
             if urlparse(son).path in ("", "/") and urlparse(url).path not in ("", "/"):
@@ -149,6 +155,8 @@ def _varsayilan_getir(
         raise AgHatasi(f"HTTP {e.code} hatasi: {url}") from e
     except urllib.error.URLError as e:
         raise AgHatasi(f"URL hatasi ({e.reason}): {url}") from e
+    except (ValueError, http.client.InvalidURL) as e:  # orn. "http://[::1/x"
+        raise AgHatasi(f"gecersiz URL ({e}): {url}") from e
 
 
 class Indirici:
