@@ -30,7 +30,8 @@ test instead.
 - **Keep the politeness policy intact.** Nothing may lower the 2-second floor,
   drop the `User-Agent`, or skip robots.txt by default.
 - **Docs stay in sync.** User-visible behaviour belongs in `README.md` and
-  `README.tr.md`; changes belong in `CHANGELOG.md` under "Unreleased".
+  `README.tr.md`; changes belong in `CHANGELOG.md` under the newest version
+  heading. If the change alters an example output, update that example too.
 
 ## Style
 

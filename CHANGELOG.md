@@ -8,6 +8,19 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- **`--min-aralik inf` and `--timeout inf` crashed with `OverflowError`.** Both
+  parsers now reject non-finite numbers as usage errors, and
+  `aralik_dogrula(inf)` clamps to the 2-second floor, so a library caller cannot
+  trigger the crash either.
+- **Malformed URLs no longer escape as tracebacks.** `http://[::1/x` used to
+  raise `ValueError` and `http://host:abc/` an `InvalidURL` from inside the
+  downloader; both become `AgHatasi` with exit code 2. `--url` accepts only
+  `http(s)`, so a `file://` URL can no longer read a local file.
+- **`k` softening added to Turkish matching.** `yönetmelik` now matches
+  `yönetmeliğinde` (k → ğ) and `renk` matches `rengi` (k → g); both forms are
+  tried because the correct one depends on the suffix. This was the largest
+  remaining gap for regulation titles.
+
 - **Search no longer matches a substring in the middle of a word.** `eslesme_mi`
   used `sorgu in metin_jetonu`, so `ara` matched `taraftar` and `tat` matched
   `istatistik`. Matching is now prefix-only, as the documentation always
@@ -41,7 +54,7 @@ All notable changes to this project are documented here. The format follows
   function is testable without catching `SystemExit`.
 - Status messages (`yazildi: ...`, `RSS yazildi: ...`, warnings) go to stderr;
   stdout carries data only.
-- Offline test suite (82 tests, ~96% line/branch coverage) with recorded
+- Offline test suite (94 tests, ~96% line/branch coverage) with recorded
   fixtures for the modern UTF-8 layout, the Windows-1254 archive layout and the
   "not published yet" page.
 - `scripts/check.sh` (secret scan, ruff, ruff format, mypy, pytest + coverage)

@@ -94,7 +94,7 @@ Her iki komutta geçerli seçenekler:
 | `--ilan-yok` | ilan bölümünü çıkar |
 | `--mukerrer N` | o günün N. mükerrer sayısını iste |
 | `--ham` | `/fihrist` yerine eski `/eskiler/...` arşiv sayfasını oku |
-| `--url URL` | doğrudan URL ver (arşiv, ayna, çevrimdışı test) |
+| `--url URL` | doğrudan `http(s)` URL ver (arşiv, ayna, test) |
 | `--min-aralik SN` | istekler arası bekleme; 2'nin altına inemez |
 | `--timeout SN` | istek zaman aşımı (varsayılan 30) |
 | `--robots-yok` | robots.txt denetimini kapat (yalnız yerel test) |
@@ -108,7 +108,7 @@ yazacağı için bu birleşim baştan reddedilir.
 2. **Konu takibi.** `rg-fihrist bugun --ara "kişisel veri" --rss kvkk.xml` —
    `kvkk.xml` dosyasını herhangi bir besleme okuyucusuna abone edin.
 3. **Arşiv araması.** `rg-fihrist tarih 2015-03-17 --ham --ara "yönetmelik"` —
-   Windows-1254 kodlu eski sayfayı okur, eşleşen 5 yönetmeliği listeler.
+   Windows-1254 kodlu eski sayfayı okur, eşleşen 4 yönetmeliği listeler.
 
 ### Türkçe arama davranışı
 
@@ -120,6 +120,8 @@ yapılır:
 | `vergi` | `vergisi`, `Vergi Usul Kanunu` | `verimsiz` |
 | `veri` | `verilerin`, `Veri Sorumlusu` | — |
 | `kitap` | `kitabı` (p → b yumuşaması) | — |
+| `yönetmelik` | `yönetmeliği`, `yönetmeliğinde` (k → ğ) | `yönetici` |
+| `renk` | `rengi` (n'den sonra k → g) | `kürek` |
 | `ara` | `arama` | `taraftar` (yalnız iç parça) |
 
 Tüm sorgu jetonları eşleşmelidir (VE); birden çok `--ara` bayrağı VEYA ile
@@ -155,7 +157,7 @@ istemiyorsanız `--ilan-yok` kullanın.
 | 0 | başarı (süzgeç sonrası boş sonuç da başarıdır, uyarı verilir) |
 | 2 | ağ/HTTP hatası; robots.txt reddi ve beklenmeyen yönlendirme dahil |
 | 3 | sayfa yapısı veya içerik hatası (tanınmayan yerleşim, boş fihrist, henüz yayımlanmamış sayfa) |
-| 4 | kullanım hatası (geçersiz tarih/sayı, çakışan bayraklar) |
+| 4 | kullanım hatası (geçersiz tarih/sayı, http(s) olmayan `--url`, çakışan bayraklar) |
 | 5 | çıktı dosyası yazılamadı |
 
 ## Bilinen sınırlar

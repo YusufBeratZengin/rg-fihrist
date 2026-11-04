@@ -95,7 +95,7 @@ Options accepted by both commands:
 | `--ilan-yok` | drop the announcements (`ilan`) section |
 | `--mukerrer N` | request the N-th duplicate issue of that day |
 | `--ham` | read the legacy `/eskiler/...` archive page instead of `/fihrist` |
-| `--url URL` | fetch an explicit URL (archives, mirrors, offline tests) |
+| `--url URL` | fetch an explicit `http(s)` URL (archives, mirrors, tests) |
 | `--min-aralik SN` | wait between requests; cannot go below 2 |
 | `--timeout SN` | request timeout (default 30) |
 | `--robots-yok` | skip the robots.txt check (local testing only) |
@@ -109,7 +109,7 @@ overwrite the first, so the pair is rejected instead.
 2. **Watching a topic.** `rg-fihrist bugun --ara "kişisel veri" --rss kvkk.xml`
    and subscribe to `kvkk.xml` in any feed reader.
 3. **Archive search.** `rg-fihrist tarih 2015-03-17 --ham --ara "yönetmelik"`
-   reads the legacy Windows-1254 page and prints the 5 matching regulations.
+   reads the legacy Windows-1254 page and prints the 4 matching regulations.
 
 ### Turkish search semantics
 
@@ -120,6 +120,8 @@ Matching is per token and **prefix-based** after Turkish case folding:
 | `vergi` | `vergisi`, `Vergi Usul Kanunu` | `verimsiz` |
 | `veri` | `verilerin`, `Veri Sorumlusu` | — |
 | `kitap` | `kitabı` (p → b softening) | — |
+| `yönetmelik` | `yönetmeliği`, `yönetmeliğinde` (k → ğ) | `yönetici` |
+| `renk` | `rengi` (k → g after n) | `kürek` |
 | `ara` | `arama` | `taraftar` (only an inner substring) |
 
 All query tokens must match (AND); several `--ara` flags are OR-ed. One-letter
@@ -154,7 +156,7 @@ not want that section in your output or feed at all.
 | 0 | success (an empty filter result is still a success, with a warning) |
 | 2 | network/HTTP error, including a robots.txt refusal or an unexpected redirect |
 | 3 | page structure or content error (unknown layout, empty index, not published yet) |
-| 4 | usage error (bad date, bad number, conflicting flags) |
+| 4 | usage error (bad date, bad number, non-http `--url`, conflicting flags) |
 | 5 | output file could not be written |
 
 ## Known limits
