@@ -8,7 +8,9 @@ Kurallar:
   ortasindaki bir parca eslesme sayilmaz; ``ara`` sorgusu ``taraftar``
   jetonuyla eslesmez.
 - Unsuz yumusamasi tek harfte karsilanir: ``kitap`` -> ``kitabı``,
-  ``ağaç`` -> ``ağacı``, ``kanat`` -> ``kanadı`` (p->b, ç->c, t->d).
+  ``ağaç`` -> ``ağacı``, ``kanat`` -> ``kanadı`` (p->b, ç->c, t->d) ve
+  ``yönetmelik`` -> ``yönetmeliği``, ``renk`` -> ``rengi`` (k->ğ veya k->g;
+  hangisinin dogru oldugu ekin ilk unlusune baglidir, ikisi de denenir).
 - Tum sorgu jetonlari eslesmedigi surece girdi elenmez (AND mantigi).
 
 Sinirlar: onek eslesmesi govde degisimlerini (``kitap``/``kitaplar`` disinda
@@ -25,7 +27,14 @@ from rg_fihrist.ayristir import Girdi
 _JETON = re.compile(r"[0-9a-zçğıöşü]+")
 
 # Turkce unsuz yumusamasi: sozcuk sonundaki sert unsuz, ek alirken yumusar.
-_YUMUSAMA = {"p": "b", "ç": "c", "t": "d"}
+# ``k`` iki bicimde yumusayabilir: unluden sonra ``ğ`` (yönetmelik -> yönetmeliği),
+# ``n``den sonra ``g`` (renk -> rengi); ikisi de denenir.
+_YUMUSAMA: dict[str, tuple[str, ...]] = {
+    "p": ("b",),
+    "ç": ("c",),
+    "t": ("d",),
+    "k": ("ğ", "g"),
+}
 
 
 def turkce_kucuk(metin: str) -> str:
@@ -46,7 +55,8 @@ def _jeton_eslesir(sorgu_jetonu: str, metin_jetonu: str) -> bool:
         return True
     son = sorgu_jetonu[-1]
     if len(sorgu_jetonu) >= 3 and son in _YUMUSAMA:
-        return metin_jetonu.startswith(sorgu_jetonu[:-1] + _YUMUSAMA[son])
+        govde = sorgu_jetonu[:-1]
+        return any(metin_jetonu.startswith(govde + yumusak) for yumusak in _YUMUSAMA[son])
     return False
 
 

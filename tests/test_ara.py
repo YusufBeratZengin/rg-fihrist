@@ -68,6 +68,14 @@ def test_unsuz_yumusamasi() -> None:
     assert eslesme_mi("kanat", "kanadı") is True
 
 
+def test_k_yumusamasi_iki_bicimde_de_eslesir() -> None:
+    """k -> ğ (ünlüden sonra) ve k -> g (n'den sonra) ayrı ayrı denenir."""
+    assert eslesme_mi("yönetmelik", "Yönetmeliğinde Değişiklik Yapılmasına Dair Düzenleme") is True
+    assert eslesme_mi("renk", "Araç Rengi") is True
+    assert eslesme_mi("yönetmelik", "Yönetici Atama Kararı") is False
+    assert eslesme_mi("renk", "Kürek Yarışı") is False
+
+
 def test_tum_jetonlar_gerekli_and_mantigi() -> None:
     assert eslesme_mi("kişisel veri", "Kişisel Sağlık Verisi") is True
     assert eslesme_mi("kişisel veri", "Kişisel Sağlık Bilgisi") is False
