@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+.venv/
+venv/
+cikti.xml
+*.xml.orig
+
+# yerel calisma dosyalari
+.tmp/
+*.log
+
+# isci notlari depoya girmez
+HAT-*.md

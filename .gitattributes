@@ -1,0 +1,3 @@
+# Fixtures are byte-exact recordings: do not normalise line endings or encodings.
+tests/fixtures/*.htm -text -diff
+*.png binary
