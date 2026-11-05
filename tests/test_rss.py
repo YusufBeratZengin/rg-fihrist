@@ -5,6 +5,8 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
+import pytest
+
 from rg_fihrist.ayristir import Fihrist, Girdi
 from rg_fihrist.rss import TR_SAAT, rss_olustur
 
@@ -76,9 +78,10 @@ def test_mukerrer_ve_arama_aciklamada_gorunur() -> None:
     assert "tam metin degildir" in aciklama
 
 
-def test_hatali_tarih_cokme_yerine_varsayilan_gun() -> None:
-    kok = ET.fromstring(rss_olustur(_fihrist(tarih="bilinmiyor"), simdi=SIMDI))
-    assert kok.findtext("channel/pubDate") == "Sat, 01 Jan 2000 00:00:00 +0300"
+def test_hatali_tarih_uydurulmaz() -> None:
+    """Gecersiz tarih icin 2000-01-01 gibi uydurma bir gun yayinlanmamali."""
+    with pytest.raises(ValueError, match="gecersiz tarih"):
+        rss_olustur(_fihrist(tarih="bilinmiyor"), simdi=SIMDI)
 
 
 def test_bos_girdi_listesi_de_gecerli_xml() -> None:

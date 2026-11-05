@@ -19,11 +19,11 @@ TR_SAAT = timezone(timedelta(hours=3))  # Türkiye saati (UTC+3)
 
 
 def _tarih_ayristir(tarih: str) -> date:
-    """'YYYY-MM-DD' -> date; hataliysa 2000-01-01."""
+    """'YYYY-MM-DD' -> date; hatali tarih uydurulmaz, ValueError firlatilir."""
     try:
         return date.fromisoformat(tarih)
     except (ValueError, TypeError):
-        return date(2000, 1, 1)
+        raise ValueError(f"gecersiz tarih: {tarih!r} (YYYY-MM-DD bekleniyor)") from None
 
 
 def rss_olustur(fihrist: Fihrist, arama: str | None = None, simdi: datetime | None = None) -> str:
