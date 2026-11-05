@@ -24,6 +24,7 @@ import json
 import math
 import os
 import sys
+import tempfile
 from datetime import date
 from typing import NoReturn
 from urllib.parse import urlparse
@@ -237,22 +238,62 @@ def _metin_rapor(fihrist: Fihrist, arama: list[str]) -> str:
 
 
 def _stdout_yaz(metin: str) -> None:
-    """stdout'a yaz; konsol Turkce karakterleri kodlayamiyorsa kayipsiz dus."""
+    """stdout'a yaz; kodlanamayan karakter ve erken kapanan boru cokertmesin."""
+
+    def yaz_ve_bosalt(veri: str) -> None:
+        sys.stdout.write(veri)
+        bosalt = getattr(sys.stdout, "flush", None)
+        if callable(bosalt):
+            bosalt()
+
     try:
-        sys.stdout.write(metin)
-    except UnicodeEncodeError:
-        kodlama = getattr(sys.stdout, "encoding", None) or "ascii"
-        sys.stdout.write(metin.encode(kodlama, "replace").decode(kodlama))
+        try:
+            yaz_ve_bosalt(metin)
+        except UnicodeEncodeError:
+            kodlama = getattr(sys.stdout, "encoding", None) or "ascii"
+            yaz_ve_bosalt(metin.encode(kodlama, "replace").decode(kodlama))
+    except BrokenPipeError:
+        # Tuketici (orn. `head`) okumayi birakti. Kapali boruyu kapatmaya
+        # calismak cikista ikinci bir iz birakir; stdout'u devnull'a cevir.
+        try:
+            sys.stdout = open(os.devnull, "w", encoding="utf-8")
+        except OSError:
+            pass
 
 
 def _ayni_yol(a: str, b: str) -> bool:
-    return os.path.normcase(os.path.abspath(a)) == os.path.normcase(os.path.abspath(b))
+    """Iki yol ayni dosyayi mi gosteriyor? (bagil yollar ve sembolik baglar dahil)"""
+    return os.path.normcase(os.path.realpath(a)) == os.path.normcase(os.path.realpath(b))
 
 
 def _yaz(yol: str, metin: str) -> None:
-    """Dosyaya UTF-8 yaz; OSError'i cagirana birak."""
-    with open(yol, "w", encoding="utf-8", newline="\n") as f:
-        f.write(metin)
+    """Dosyaya atomik UTF-8 yaz; OSError'i cagirana birak.
+
+    Metin once hedefle ayni dizindeki gecici dosyaya yazilir, sonra
+    ``os.replace`` ile hedefe tasinir. Yazim yarida kalirsa (disk dolu, kesilen
+    surec) onceki rapor/feed bozulmadan kalir ve gecici dosya silinir. Sembolik
+    bagda bagin kendisi degil hedefi guncellenir; mevcut dosyanin izinleri korunur.
+    """
+    # Sembolik bag varsa hedefe (gercek dosyaya) yaz; bagin kendisi korunur.
+    hedef = os.path.realpath(yol)
+    fd, gecici = tempfile.mkstemp(prefix=".rg-fihrist-", suffix=".tmp", dir=os.path.dirname(hedef))
+    try:
+        try:
+            izin = os.stat(hedef).st_mode & 0o777
+        except OSError:
+            maske = os.umask(0)
+            os.umask(maske)
+            izin = 0o666 & ~maske
+        os.chmod(gecici, izin)
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+            f.write(metin)
+        os.replace(gecici, hedef)
+    except BaseException:
+        try:
+            os.unlink(gecici)
+        except OSError:
+            pass
+        raise
 
 
 def main(argv: list[str] | None = None, indirici: IndiriciProtokolu | None = None) -> int:

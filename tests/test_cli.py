@@ -292,6 +292,103 @@ def test_rss_yazilamazsa_kod_5(tmp_path: Path, capsys: pytest.CaptureFixture[str
     assert "yazilamadi" in cikti.err
 
 
+def test_sembolik_bag_ayni_dosya_sayilir(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--cikti ve --rss sembolik bag uzerinden ayni dosyayi gosteremez."""
+    gercek = tmp_path / "fihrist.json"
+    gercek.write_text("{}", encoding="utf-8")
+    bag = tmp_path / "bag.json"
+    try:
+        os.symlink(gercek, bag)
+    except (OSError, NotImplementedError):
+        pytest.skip("bu ortamda sembolik bag olusturulamiyor")
+    kod = main(
+        ["bugun", "--json", "--cikti", str(bag), "--rss", str(gercek)],
+        indirici=SahteIndirici(),
+    )
+    assert kod == CIKIS_KULLANIM
+    assert "ayni dosyayi" in capsys.readouterr().err
+    assert gercek.read_text(encoding="utf-8") == "{}"
+
+
+def test_sembolik_bag_hedefi_guncellenir_bag_korunur(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--cikti bir sembolik bagsa hedef dosya guncellenir, bag bozulmaz."""
+    gercek = tmp_path / "fihrist.json"
+    gercek.write_text("{}", encoding="utf-8")
+    bag = tmp_path / "guncel.json"
+    try:
+        os.symlink(gercek, bag)
+    except (OSError, NotImplementedError):
+        pytest.skip("bu ortamda sembolik bag olusturulamiyor")
+    kod = main(["bugun", "--json", "--cikti", str(bag)], indirici=SahteIndirici())
+    assert kod == CIKIS_TAMAM
+    assert bag.is_symlink()
+    assert json.loads(gercek.read_text(encoding="utf-8"))["girdi_sayisi"] == 13
+    capsys.readouterr()
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX izin bitleri")
+def test_var_olan_dosyanin_izinleri_korunur(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    hedef = tmp_path / "fihrist.json"
+    hedef.write_text("{}", encoding="utf-8")
+    hedef.chmod(0o640)
+    assert main(["bugun", "--json", "--cikti", str(hedef)], indirici=SahteIndirici()) == CIKIS_TAMAM
+    assert hedef.stat().st_mode & 0o777 == 0o640
+    capsys.readouterr()
+
+
+def test_kapali_boru_traceback_uretmaz(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Regresyon: `rg-fihrist bugun | head` gibi erken kapanan boru cokmemeli."""
+
+    class KirikStdout:
+        encoding = "utf-8"
+
+        def write(self, metin: str) -> None:
+            raise BrokenPipeError(32, "Broken pipe")
+
+        def flush(self) -> None:
+            raise BrokenPipeError(32, "Broken pipe")
+
+    monkeypatch.setattr("sys.stdout", KirikStdout())
+    assert main(["bugun"], indirici=SahteIndirici()) == CIKIS_TAMAM
+    assert capsys.readouterr().err == ""
+
+
+def test_yarim_kalan_yazim_eski_dosyayi_bozmaz(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Cikti once gecici dosyaya yazilir; replace basarisizsa eski dosya korunur."""
+    hedef = tmp_path / "fihrist.json"
+    hedef.write_text("ESKI ICERIK", encoding="utf-8")
+
+    def patlat(*_a: object, **_k: object) -> None:
+        raise OSError(28, "No space left on device")
+
+    monkeypatch.setattr("rg_fihrist.cli.os.replace", patlat)
+    kod = main(["bugun", "--json", "--cikti", str(hedef)], indirici=SahteIndirici())
+    assert kod == CIKIS_DOSYA
+    assert "yazilamadi" in capsys.readouterr().err
+    assert hedef.read_text(encoding="utf-8") == "ESKI ICERIK"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["fihrist.json"]
+
+
+def test_basarili_yazim_gecici_dosya_birakmaz(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    hedef = tmp_path / "fihrist.xml"
+    kod = main(["bugun", "--rss", str(hedef)], indirici=SahteIndirici())
+    assert kod == CIKIS_TAMAM
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["fihrist.xml"]
+    capsys.readouterr()
+
+
 def test_kodlanamayan_konsolda_cikti_kaybolmaz(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
