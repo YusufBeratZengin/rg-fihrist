@@ -101,7 +101,11 @@ Options accepted by both commands:
 | `--robots-yok` | skip the robots.txt check (local testing only) |
 
 `--cikti` and `--rss` may not point at the same file: the second write would
-overwrite the first, so the pair is rejected instead.
+overwrite the first, so the pair is rejected instead (symlinks included). Both
+files are written atomically — a temporary file in the target directory is
+renamed over the destination — so an interrupted or failed run leaves the
+previous report or feed untouched. A closed pipe (`rg-fihrist bugun | head`)
+ends the program quietly instead of printing a traceback.
 
 ### Three real scenarios
 

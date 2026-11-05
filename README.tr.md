@@ -100,7 +100,11 @@ Her iki komutta geçerli seçenekler:
 | `--robots-yok` | robots.txt denetimini kapat (yalnız yerel test) |
 
 `--cikti` ile `--rss` aynı dosyayı gösteremez: ikinci yazım birincinin üzerine
-yazacağı için bu birleşim baştan reddedilir.
+yazacağı için bu birleşim baştan reddedilir (sembolik bağlar dahil). İki dosya
+da atomik yazılır — hedef dizinde geçici bir dosya oluşturulup yerine taşınır —
+böylece yarıda kalan veya başarısız bir çalışma önceki raporu/beslemeyi bozmaz.
+Erken kapanan bir boru (`rg-fihrist bugun | head`) traceback yerine sessizce
+biter.
 
 ### Üç gerçek senaryo
 

@@ -46,6 +46,18 @@ All notable changes to this project are documented here. The format follows
   message.
 - RSS `lastBuildDate` is the generation time in Turkish local time; `pubDate`
   no longer invents a publication hour.
+- **Output files are written atomically.** `--cikti` and `--rss` write to a
+  temporary file in the target directory and rename it into place, so a full
+  disk or an interrupted run no longer truncates an existing report or feed.
+  The same-file guard now resolves symlinks, and a write failure (exit code 5)
+  leaves the old file intact.
+- **A closed pipe no longer produces a traceback.** `rg-fihrist bugun | head`
+  used to raise `BrokenPipeError`; the report is now dropped quietly and the
+  process exits successfully.
+- **RSS refuses an invalid date instead of publishing a fabricated one.**
+  `rss_olustur` used to fall back to 1 January 2000 when `Fihrist.tarih` was not
+  ISO-8601; it now raises `ValueError`, because a feed with an invented date is
+  worse than no feed. The CLI always passes a validated date.
 
 ### Added
 
@@ -54,11 +66,13 @@ All notable changes to this project are documented here. The format follows
   function is testable without catching `SystemExit`.
 - Status messages (`yazildi: ...`, `RSS yazildi: ...`, warnings) go to stderr;
   stdout carries data only.
-- Offline test suite (94 tests, ~96% line/branch coverage) with recorded
+- Offline test suite (102 tests, ~96% line/branch coverage) with recorded
   fixtures for the modern UTF-8 layout, the Windows-1254 archive layout and the
   "not published yet" page.
 - `scripts/check.sh` (secret scan, ruff, ruff format, mypy, pytest + coverage)
   and a matching GitHub Actions workflow for Linux and Windows.
+- End-to-end HTTP tests against a throwaway `127.0.0.1` server: real `urllib`,
+  `robots.txt` and charset detection instead of an injected `getir_fn`.
 - English and Turkish user documentation.
 
 ### Changed
