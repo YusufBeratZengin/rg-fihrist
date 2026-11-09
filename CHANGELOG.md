@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- The `a/b/c - ... İlânları` links in the notice ("ilan") section are now index
+  entries of their own instead of sub-headings, so the JSON `girdi_sayisi` of the
+  sample page goes from 13 to 16 (`Fihrist.girdiler` gains the same entries). The
+  entries that follow them, such as "T.C. Merkez Bankasınca Belirlenen Döviz
+  Kurları", no longer carry the sub-heading `c - Çeşitli İlânlar` (`alt_baslik`
+  is now `null` for notice entries), because that text is now an entry itself.
+  Sub-headings that come from `<u>` elements in legacy archive pages are
+  unchanged.
+
+### Fixed
+
+- Gazette notices ("ilan") published under the `/ilanlar/eskiilanlar/` path are parsed again,
+  and their links are no longer dropped from the index.
+- `bugun` now uses the current date in Turkey time (UTC+3) instead of the host
+  time zone; an RSS feed built from an index without a date falls back to the
+  same date.
+- Test suite: added regression fixtures and tests, and removed the test-module
+  name clash that made `mypy` fail.
+
 ## [0.2.0] - 2026-11-04
 
 ### Fixed

@@ -71,9 +71,10 @@ def test_bugun_json_ciktisi(capsys: pytest.CaptureFixture[str]) -> None:
     kod, veri, cikti = _json_calistir(capsys, ["bugun", "--json"])
     assert kod == CIKIS_TAMAM
     assert veri["sayi"] == "33419"
-    assert veri["girdi_sayisi"] == 13
+    # Modern fixture: 12 belge + 4 gercek ilan baglantisi (a/b/c dahil).
+    assert veri["girdi_sayisi"] == 16
     assert veri["kodlama"] == "utf-8"
-    assert len(veri["girdiler"]) == 13
+    assert len(veri["girdiler"]) == 16
     assert set(veri["girdiler"][0]) == {"baslik", "baglanti", "bolum", "alt_baslik"}
 
 
@@ -96,8 +97,9 @@ def test_arama_suzgeci(capsys: pytest.CaptureFixture[str]) -> None:
 def test_bolum_ve_ilan_yok_suzgecleri(capsys: pytest.CaptureFixture[str]) -> None:
     kod, veri, cikti = _json_calistir(capsys, ["bugun", "--json", "--bolum", "ilan"])
     assert kod == CIKIS_TAMAM
-    assert veri["girdi_sayisi"] == 1
-    assert veri["girdiler"][0]["bolum"] == "ilan"
+    # Dort ilan baglantisi da korunur; --ilan-yok yalnizca 12 belge birakir.
+    assert veri["girdi_sayisi"] == 4
+    assert all(g["bolum"] == "ilan" for g in veri["girdiler"])
 
     kod, veri, cikti = _json_calistir(capsys, ["bugun", "--json", "--ilan-yok"])
     assert kod == CIKIS_TAMAM
@@ -123,7 +125,7 @@ def test_cikti_dosyasi_yazilir_stdout_bos_kalir(
     assert kod == CIKIS_TAMAM
     assert cikti.out == ""
     assert "yazildi" in cikti.err
-    assert json.loads(hedef.read_text(encoding="utf-8"))["girdi_sayisi"] == 13
+    assert json.loads(hedef.read_text(encoding="utf-8"))["girdi_sayisi"] == 16
 
 
 def test_rss_dosyasi_yazilir(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -133,7 +135,7 @@ def test_rss_dosyasi_yazilir(tmp_path: Path, capsys: pytest.CaptureFixture[str])
     assert kod == CIKIS_TAMAM
     assert "RSS yazildi" in cikti.err
     kok = ET.fromstring(hedef.read_text(encoding="utf-8"))
-    assert len(kok.findall("channel/item")) == 13
+    assert len(kok.findall("channel/item")) == 16
 
 
 def test_cikti_ve_rss_ayni_dosya_reddedilir(
@@ -154,7 +156,7 @@ def test_metin_ciktisi_bolumleri_gruplar(capsys: pytest.CaptureFixture[str]) -> 
     cikti = capsys.readouterr()
     assert kod == CIKIS_TAMAM
     assert "[YURUTME] (12)" in cikti.out
-    assert "[ILAN] (1)" in cikti.out
+    assert "[ILAN] (4)" in cikti.out
     assert "sayi 33419" in cikti.out
 
 
@@ -326,7 +328,7 @@ def test_sembolik_bag_hedefi_guncellenir_bag_korunur(
     kod = main(["bugun", "--json", "--cikti", str(bag)], indirici=SahteIndirici())
     assert kod == CIKIS_TAMAM
     assert bag.is_symlink()
-    assert json.loads(gercek.read_text(encoding="utf-8"))["girdi_sayisi"] == 13
+    assert json.loads(gercek.read_text(encoding="utf-8"))["girdi_sayisi"] == 16
     capsys.readouterr()
 
 

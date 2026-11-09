@@ -46,6 +46,9 @@ _ARSIV_YOLU = re.compile(
 # Tek belge: /eskiler/YYYY/MM/YYYYMMDD-N.htm. Sayinin tamaminin PDF'i
 # (YYYYMMDD.pdf) bu kaliba uymaz; boylece "PDF Görüntüle" dugmesi girdi sayilmaz.
 _ARSIV_BELGE = re.compile(r"/eskiler/\d{4}/\d{2}/(?P<gun>\d{8})-\d+\.(?:html?|pdf)$", re.IGNORECASE)
+_ILAN_BELGE = re.compile(
+    r"/ilanlar/eskiilanlar/\d{4}/\d{2}/(?P<gun>\d{8})-\d+\.htm$", re.IGNORECASE
+)
 _YAYIM_YOK = re.compile(r"YAYIMLANMASI\s+ÇALIŞMALARI\s+DEVAM", re.IGNORECASE)
 _TIRELER = "—–‒―-"
 
@@ -254,9 +257,18 @@ class _Ayrisitirici(HTMLParser):
             return
         url = _baglanti_coz(self.kaynak, href)
         tireli = temiz[0] in _TIRELER
-        if not girdide and not tireli and not self._ayni_sayinin_belgesi(url or ""):
+        ilan = _ILAN_BELGE.search(urlparse(url or "").path)
+        ilan_belgesi = bool(
+            self.bolum == "ilan" and ilan and ilan.group("gun") == self._belge_tarihi
+        )
+        if (
+            not girdide
+            and not tireli
+            and not ilan_belgesi
+            and not self._ayni_sayinin_belgesi(url or "")
+        ):
             return  # gezinme baglantilari (Onceki/Sonraki Sayi, PDF Goruntule vb.)
-        if _ALT_BASLIK_DESENI.match(temiz) and not tireli:
+        if _ALT_BASLIK_DESENI.match(temiz) and not tireli and not ilan_belgesi:
             self.alt_baslik = temiz
             return
         baslik = temiz.lstrip(_TIRELER).strip()

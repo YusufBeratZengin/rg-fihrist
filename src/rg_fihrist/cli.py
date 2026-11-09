@@ -25,11 +25,11 @@ import math
 import os
 import sys
 import tempfile
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import NoReturn
 from urllib.parse import urlparse
 
-from rg_fihrist._surum import SURUM
+from rg_fihrist._surum import __version__ as SURUM
 from rg_fihrist.ara import eslesme_mi, girdi_metni
 from rg_fihrist.ayristir import BOLUMLER, Fihrist, YapiHatasi, ayristir
 from rg_fihrist.indir import (
@@ -41,7 +41,7 @@ from rg_fihrist.indir import (
     arsiv_url,
     fihrist_url,
 )
-from rg_fihrist.rss import rss_olustur
+from rg_fihrist.rss import TR_SAAT, rss_olustur
 
 CIKIS_TAMAM = 0
 CIKIS_AG = 2
@@ -187,9 +187,17 @@ def _parser_olustur() -> argparse.ArgumentParser:
     return p
 
 
+def bugun_tarihi(simdi: datetime | None = None) -> date:
+    """Bugunun tarihini Turkiye saatinde dondur."""
+    an = simdi or datetime.now(timezone.utc)
+    if an.tzinfo is None:
+        an = an.replace(tzinfo=timezone.utc)
+    return an.astimezone(TR_SAAT).date()
+
+
 def _url_olustur(args: argparse.Namespace) -> tuple[str, str, int]:
     """Komut + argumanlardan (url, tarih_metni, mukerrer) uret."""
-    tarih = date.today() if args.komut == "bugun" else args.tarih
+    tarih = bugun_tarihi() if args.komut == "bugun" else args.tarih
     mukerrer = args.mukerrer
     if args.url:
         url = args.url

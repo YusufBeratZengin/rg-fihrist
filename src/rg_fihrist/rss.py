@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from datetime import date, datetime, time, timedelta, timezone
 from email.utils import format_datetime
 
-from rg_fihrist._surum import SURUM
+from rg_fihrist._surum import __version__
 from rg_fihrist.ayristir import Fihrist
 
 TR_SAAT = timezone(timedelta(hours=3))  # Türkiye saati (UTC+3)
@@ -28,15 +28,18 @@ def _tarih_ayristir(tarih: str) -> date:
 
 def rss_olustur(fihrist: Fihrist, arama: str | None = None, simdi: datetime | None = None) -> str:
     """Fihrist'ten RSS 2.0 XML metni uretir (girdi baglantilari guid olur)."""
-    gun = _tarih_ayristir(fihrist.tarih)
-    yayin_tarihi = datetime.combine(gun, time(0, 0), tzinfo=TR_SAAT)
     uretim = simdi or datetime.now(TR_SAAT)
     if uretim.tzinfo is None:
         uretim = uretim.replace(tzinfo=TR_SAAT)
     uretim = uretim.astimezone(TR_SAAT)  # besleme her zaman Turkiye saatinde
 
+    # Eski API uyumu: tarihsiz fihrist icin Turkiye saatindeki bugunu kullan.
+    gun = _tarih_ayristir(fihrist.tarih) if fihrist.tarih else uretim.date()
+    tarih_metni = gun.isoformat()
+    yayin_tarihi = datetime.combine(gun, time(0, 0), tzinfo=TR_SAAT)
+
     mk = f" {fihrist.mukerrer}. mükerrer" if fihrist.mukerrer > 0 else ""
-    kanal_baslik = f"Resmi Gazete Fihristi {fihrist.tarih}{mk}"
+    kanal_baslik = f"Resmi Gazete Fihristi {tarih_metni}{mk}"
     if fihrist.sayi:
         kanal_baslik += f" (sayı {fihrist.sayi})"
 
@@ -44,7 +47,7 @@ def rss_olustur(fihrist: Fihrist, arama: str | None = None, simdi: datetime | No
     kanal = ET.SubElement(kok, "channel")
     ET.SubElement(kanal, "title").text = kanal_baslik
     ET.SubElement(kanal, "link").text = fihrist.kaynak
-    aciklama = f"T.C. Resmi Gazete gunluk fihristi ({fihrist.tarih}{mk})."
+    aciklama = f"T.C. Resmi Gazete gunluk fihristi ({tarih_metni}{mk})."
     if arama:
         aciklama += f" Arama: '{arama}'."
     aciklama += " Yalnizca baslik ve baglanti icerir; tam metin degildir."
@@ -52,7 +55,7 @@ def rss_olustur(fihrist: Fihrist, arama: str | None = None, simdi: datetime | No
     ET.SubElement(kanal, "language").text = "tr"
     ET.SubElement(kanal, "pubDate").text = format_datetime(yayin_tarihi)
     ET.SubElement(kanal, "lastBuildDate").text = format_datetime(uretim)
-    ET.SubElement(kanal, "generator").text = f"rg-fihrist {SURUM}"
+    ET.SubElement(kanal, "generator").text = f"rg-fihrist {__version__}"
     ET.SubElement(kanal, "ttl").text = "1440"
 
     for girdi in fihrist.girdiler:

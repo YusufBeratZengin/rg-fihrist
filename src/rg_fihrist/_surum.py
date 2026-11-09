@@ -1,8 +1,6 @@
-"""Surum bilgisi.
+"""Tek kaynakli surum bilgisi (paket, User-Agent ve RSS generator ayni degeri kullanir)."""
 
-Ayri bir modulde tutulur: ``rg_fihrist/__init__.py`` hem alt modulleri hem de
-``__version__`` alanini disa aktardigi icin, alt modullerin paketten surum
-okumasi dairesel ice aktarmaya yol acar.
-"""
+from __future__ import annotations
 
-SURUM = "0.2.0"
+__version__ = "0.2.0"
+SURUM = __version__  # backward-compatible alias
