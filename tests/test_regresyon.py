@@ -29,7 +29,7 @@ def _modern_indirici() -> Indirici:
     return _indirici((FIXTURES / "fihrist_2026-11-02.htm").read_bytes())
 
 
-# --- N1: ayni dosyaya JSON ve RSS yazma veri kaybi ---
+# --- ayni dosyaya JSON ve RSS yazma veri kaybi ---
 
 
 def test_ayni_cikti_ve_rss_yolu_reddedilir(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
@@ -61,7 +61,7 @@ def test_farkli_cikti_ve_rss_yolu_calismaya_devam_eder(tmp_path: Path) -> None:
     assert "<rss" in rss_yolu.read_text(encoding="utf-8")
 
 
-# --- N2: eski arsivde tiresiz belgelerin sessizce dusmesi ---
+# --- eski arsivde tiresiz belgelerin sessizce dusmesi ---
 
 
 def test_eski_tiresiz_girdiler_kaybolmaz() -> None:
@@ -77,7 +77,7 @@ def test_eski_tiresiz_girdiler_kaybolmaz() -> None:
     assert "Yargı İlânları" in basliklar
 
 
-# --- N3: yayin API'sinin paket seviyesinde disa acilmasi ---
+# --- yayin API'sinin paket seviyesinde disa acilmasi ---
 
 
 def test_paket_seviyesi_disa_acik_ogeler() -> None:
@@ -106,7 +106,7 @@ def test_girdi_metni_baslik_alt_baslik_ve_bolumu_birlestirir() -> None:
     assert "yurutme" in metin
 
 
-# --- N4: istek araligi alt siniri ---
+# --- istek araligi alt siniri ---
 
 
 def test_istek_araligi_iki_saniyenin_altina_inemez() -> None:
@@ -130,7 +130,7 @@ def test_aralik_dogrula_sinir_degerini_kabul_eder() -> None:
     assert aralik_dogrula(5) == 5.0
 
 
-# --- N5: --ilan-yok secenegi ---
+# --- --ilan-yok secenegi ---
 
 
 def test_ilan_yok_secenegi_desteklenir(capsys) -> None:  # type: ignore[no-untyped-def]
@@ -145,7 +145,7 @@ def test_ilan_yok_secenegi_desteklenir(capsys) -> None:  # type: ignore[no-untyp
     assert all(g["bolum"] != "ilan" for g in veri["girdiler"])
 
 
-# --- N6: yazma hatasi temiz cikis kodu ---
+# --- yazma hatasi temiz cikis kodu ---
 
 
 def test_yazma_hatasi_kisa_hata_ve_exit_5(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
@@ -163,7 +163,7 @@ def test_yazma_hatasi_kisa_hata_ve_exit_5(tmp_path: Path, capsys) -> None:  # ty
     assert not hedef.exists()
 
 
-# --- N7: gecersiz URL ag hatasi olarak raporlanir ---
+# --- gecersiz URL ag hatasi olarak raporlanir ---
 
 
 def test_gecersiz_url_ag_hatasi_olarak_raporlanir() -> None:
@@ -171,7 +171,7 @@ def test_gecersiz_url_ag_hatasi_olarak_raporlanir() -> None:
         Indirici(robots=False, min_aralik=2.0).indir("http://[::1/x")
 
 
-# --- B6: argparse kullanim hatasi dokumante kod 4 ---
+# --- argparse kullanim hatasi dokumante kod 4 ---
 
 
 def test_argparse_kullanim_hatasi_exit_4(capsys) -> None:  # type: ignore[no-untyped-def]
@@ -179,7 +179,7 @@ def test_argparse_kullanim_hatasi_exit_4(capsys) -> None:  # type: ignore[no-unt
     assert "usage" in capsys.readouterr().err.lower()
 
 
-# --- B7: bugun Turkiye saatini kullanir ---
+# --- bugun Turkiye saatini kullanir ---
 
 
 def test_bugun_turkiye_saatini_kullanir() -> None:
@@ -189,7 +189,7 @@ def test_bugun_turkiye_saatini_kullanir() -> None:
     assert bugun_tarihi(utc_gece_yarisindan_once) == date(2026, 11, 6)
 
 
-# --- B8: eski basliklarda satir sonu kalmaz ---
+# --- eski basliklarda satir sonu kalmaz ---
 
 
 def test_eski_basliklarda_satir_sonu_yok() -> None:
@@ -205,7 +205,7 @@ def test_eski_basliklarda_satir_sonu_yok() -> None:
         assert "\n" not in girdi.baslik
 
 
-# --- B9: meta baslik copu ---
+# --- meta baslik copu ---
 
 
 def test_meta_baslik_tam_ve_temiz() -> None:
@@ -220,7 +220,7 @@ def test_meta_baslik_tam_ve_temiz() -> None:
     assert fihrist.baslik == "02 Kasım 2026 Tarihli ve 33418 Sayılı"
 
 
-# --- B10: arama docstring ile tutarli: onek, her konumda substring degil ---
+# --- arama docstring ile tutarli: onek, her konumda substring degil ---
 
 
 def test_arama_onek_eslesmesi_substringe_genislemez() -> None:
@@ -230,7 +230,7 @@ def test_arama_onek_eslesmesi_substringe_genislemez() -> None:
     assert eslesme_mi("tebli", "TEBLİĞLER") is True
 
 
-# --- B11: gecersiz RSS tarihi acik ValueError ile reddedilir ---
+# --- gecersiz RSS tarihi acik ValueError ile reddedilir ---
 
 
 def test_rss_gecersiz_tarih_acik_hata_verir() -> None:
@@ -244,7 +244,7 @@ def test_rss_gecersiz_tarih_acik_hata_verir() -> None:
     assert "gecersiz tarih" in str(bilgi.value).lower()
 
 
-# --- B12: negatif mukerrer sessizce kirpilmaz ---
+# --- negatif mukerrer sessizce kirpilmaz ---
 
 
 def test_negatif_mukerrer_reddedilir(capsys) -> None:  # type: ignore[no-untyped-def]
