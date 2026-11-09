@@ -21,11 +21,12 @@ def test_modern_sayfa_meta_verisi(modern: Fihrist) -> None:
 
 
 def test_modern_sayfa_girdileri(modern: Fihrist) -> None:
-    assert len(modern.girdiler) == 13
+    # Fixture HTML: 12 /eskiler/ belgesi + 4 /ilanlar/ baglantisi = 16 girdi.
+    assert len(modern.girdiler) == 16
     bolumler = modern.bolumler()
     assert list(bolumler) == ["yurutme", "ilan"]
     assert len(bolumler["yurutme"]) == 12
-    assert len(bolumler["ilan"]) == 1
+    assert len(bolumler["ilan"]) == 4
 
     ilk = modern.girdiler[0]
     assert ilk.bolum == "yurutme"
@@ -35,10 +36,19 @@ def test_modern_sayfa_girdileri(modern: Fihrist) -> None:
 
 
 def test_modern_sayfa_ilan_alt_basligi_ve_baglantisi(modern: Fihrist) -> None:
-    ilan = modern.bolumler()["ilan"][0]
-    assert ilan.alt_baslik == "c - Çeşitli İlânlar"
-    assert ilan.baslik.startswith("T.C. Merkez Bankasınca Belirlenen Döviz Kurları")
-    assert "/ilanlar/" in ilan.baglanti
+    # a/b/c etiketleri baglantili ilan girdileridir; alt baslik degildir.
+    ilanlar = modern.bolumler()["ilan"]
+    assert [g.baslik for g in ilanlar[:3]] == [
+        "a - Yargı İlânları",
+        "b - Artırma, Eksiltme ve İhale İlânları",
+        "c - Çeşitli İlânlar",
+    ]
+    assert ilanlar[3].baslik.startswith("T.C. Merkez Bankasınca Belirlenen Döviz Kurları")
+    assert all(g.alt_baslik is None for g in ilanlar)
+    assert [g.baglanti for g in ilanlar] == [
+        f"https://www.resmigazete.gov.tr/ilanlar/eskiilanlar/2026/11/20261103-{n}.htm"
+        for n in range(2, 6)
+    ]
 
 
 def test_modern_sayfada_gezinme_baglantilari_girdi_olmaz(modern: Fihrist) -> None:
@@ -46,7 +56,7 @@ def test_modern_sayfada_gezinme_baglantilari_girdi_olmaz(modern: Fihrist) -> Non
     assert "PDF Görüntüle" not in basliklar
     assert "Sonraki" not in basliklar
     assert "Önceki" not in basliklar
-    assert not any(g.baslik.startswith(("a - ", "b - ")) for g in modern.girdiler)
+    # Ilan baglantilari gezinme degildir; yukaridaki test dordunu de dogrular.
 
 
 def test_eski_arsiv_sayfasi_windows1254(arsiv: Fihrist, arsiv_ham: bytes) -> None:

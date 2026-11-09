@@ -90,7 +90,7 @@ def test_modern_sayfa_gercek_http_uzerinden_okunur() -> None:
 
     assert sayfa.kodlama == "utf-8"
     fihrist = ayristir(sayfa.metin, url, tarih="2026-11-03")
-    assert len(fihrist.girdiler) == 13
+    assert len(fihrist.girdiler) == 16
     assert fihrist.sayi == "33419"
     # robots.txt ve sayfa istegi projeyi tanitan ajani tasimali.
     assert sunucu.ajanslar == [USER_AGENT, USER_AGENT]
@@ -153,7 +153,7 @@ def test_cli_sureci_gercek_http_ile_json_uretir(tmp_path: Path) -> None:
         )
     assert surec.returncode == 0, surec.stderr
     veri = json.loads(hedef.read_text(encoding="utf-8"))
-    assert veri["girdi_sayisi"] == 13
+    assert veri["girdi_sayisi"] == 16
     assert veri["kodlama"] == "utf-8"
     assert veri["kaynak"] == url
 

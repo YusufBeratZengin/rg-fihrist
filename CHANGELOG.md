@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Gazette notices ("ilan") published under the old archive path are parsed again,
+  and their links are no longer dropped from the index.
+- `bugun` now uses the current date in Turkey time (UTC+3) instead of the host
+  time zone; an RSS feed built from an index without a date falls back to the
+  same date.
+- Test suite: added regression fixtures and tests, and removed the test-module
+  name clash that made `mypy` fail.
+
 ## [0.2.0] - 2026-11-04
 
 ### Fixed

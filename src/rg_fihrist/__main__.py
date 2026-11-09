@@ -1,4 +1,4 @@
-"""Modul olarak calistirmak icin: python -m rg_fihrist ... diye kullanilir."""
+"""Modul olarak calistirmak icin: python -m rg_fihrist ..."""
 
 import sys
 

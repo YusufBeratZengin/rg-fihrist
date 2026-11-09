@@ -3,7 +3,7 @@
 Sifir calisma zamani bagimliligi: yalnizca Python standart kutuphanesi kullanilir.
 """
 
-from rg_fihrist._surum import SURUM
+from rg_fihrist._surum import __version__
 from rg_fihrist.ara import ara, eslesme_mi, girdi_metni, turkce_kucuk
 from rg_fihrist.ayristir import Fihrist, Girdi, YapiHatasi, ayristir
 from rg_fihrist.indir import (
@@ -20,8 +20,6 @@ from rg_fihrist.indir import (
 )
 from rg_fihrist.rss import rss_olustur
 
-__version__ = SURUM
-
 __all__ = [
     "MIN_ARALIK_SN",
     "AgHatasi",
@@ -31,7 +29,6 @@ __all__ = [
     "RobotsHatasi",
     "Sayfa",
     "YapiHatasi",
-    "__version__",
     "ara",
     "aralik_dogrula",
     "arsiv_url",
@@ -43,4 +40,5 @@ __all__ = [
     "metin_coz",
     "rss_olustur",
     "turkce_kucuk",
+    "__version__",
 ]

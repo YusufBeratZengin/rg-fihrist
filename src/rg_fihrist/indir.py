@@ -31,7 +31,7 @@ from typing import Protocol
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
 
-from rg_fihrist._surum import SURUM
+from rg_fihrist._surum import __version__ as SURUM
 
 TABAN_URL = "https://www.resmigazete.gov.tr"
 MIN_ARALIK_SN = 2.0
